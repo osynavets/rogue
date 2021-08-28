@@ -13,6 +13,8 @@ mod visibility_system;
 use visibility_system::VisibilitySystem;
 mod monster_ai_system;
 use monster_ai_system::MonsterAI;
+mod map_indexing_system;
+use map_indexing_system::MapIndexingSystem;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum  RunState {
@@ -32,6 +34,9 @@ impl State {
 
         let mut mob = MonsterAI{};
         mob.run_now(&self.ecs);
+
+        let mut mapindex = MapIndexingSystem{};
+        mapindex.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -75,6 +80,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
+    gs.ecs.register::<BlocksTile>();
 
     let map : Map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
@@ -114,6 +120,7 @@ fn main() -> rltk::BError {
             .with(Viewshed{ visible_tiles: Vec::new(), range: 8, dirty: true })
             .with(Monster{})
             .with(Name { name: format!("{} #{}", &name, i) })
+            .with(BlocksTile{})
             .build();
     }
 
