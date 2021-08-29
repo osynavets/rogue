@@ -1,6 +1,6 @@
-use rltk::{VirtualKeyCode, Rltk, Point};
+use rltk::{VirtualKeyCode, Rltk, Point, console};
 use specs::prelude::*;
-use crate::RunState;
+use crate::{CombatStats, RunState};
 
 use super::{Position, Viewshed, Player, Map, State};
 use std::cmp::{min, max};
@@ -9,20 +9,25 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
+    let combats_stats = ecs.read_storage::<CombatStats>();
     let map = ecs.fetch::<Map>();
 
     for (_player, pos, viewshed) in (&mut players, &mut positions, &mut viewsheds).join() {
         let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
-        if !map.blocked_tiles[destination_idx] {
-            pos.x = min(79 , max(0, pos.x + delta_x));
-            pos.y = min(49, max(0, pos.y + delta_y));
+        
+        for potential_target in map.tile_content[destination_idx].iter() {
+            let target = combats_stats.get(*potential_target);
+            match target {
+                None => {}
+                Some(t) => {
+                    // todo: implement attacj
+                    console::log("player attack");
+                    return;
+                }
+            }
 
-            viewshed.dirty = true;
-
-            let mut ppos = ecs.write_resource::<Point>();
-            ppos.x = pos.x;
-            ppos.y = pos.y;
         }
+        // todo: check other code according to original
     }
 }
 
